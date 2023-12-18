@@ -7,8 +7,18 @@ var (
 	y     float32 = 400
 	speed float32 = 2
 
-	obstacle_rec rl.Rectangle = rl.NewRectangle(400-32, 400-32, 32*2, 32*2)
+	obstacles []rl.Rectangle
 )
+
+func player_colliding() bool {
+	for i := 0; i < len(obstacles); i++ {
+		if rl.CheckCollisionRecs(rl.NewRectangle(x-18, y-18, 18*2, 18*2), obstacles[i]) {
+			return true
+		}
+	}
+
+	return false
+}
 
 func player_update() {
 	// TODO: the code inside of here causes it so that moving diagonal is double the speed
@@ -19,7 +29,7 @@ func player_update() {
 	if rl.IsKeyDown(rl.KeyD) {
 		x += speed
 
-		for rl.CheckCollisionRecs(rl.NewRectangle(x-18, y-18, 18*2, 18*2), obstacle_rec) {
+		for player_colliding() {
 			x--
 		}
 	}
@@ -27,7 +37,7 @@ func player_update() {
 	if rl.IsKeyDown(rl.KeyA) {
 		x -= speed
 
-		for rl.CheckCollisionRecs(rl.NewRectangle(x-18, y-18, 18*2, 18*2), obstacle_rec) {
+		for player_colliding() {
 			x++
 		}
 	}
@@ -35,7 +45,7 @@ func player_update() {
 	if rl.IsKeyDown(rl.KeyW) {
 		y -= speed
 
-		for rl.CheckCollisionRecs(rl.NewRectangle(x-18, y-18, 18*2, 18*2), obstacle_rec) {
+		for player_colliding() {
 			y++
 		}
 	}
@@ -43,9 +53,15 @@ func player_update() {
 	if rl.IsKeyDown(rl.KeyS) {
 		y += speed
 
-		for rl.CheckCollisionRecs(rl.NewRectangle(x-18, y-18, 18*2, 18*2), obstacle_rec) {
+		for player_colliding() {
 			y--
 		}
+	}
+}
+
+func draw_obstacles() {
+	for i := 0; i < len(obstacles); i++ {
+		rl.DrawRectangleRec(obstacles[i], rl.Blue)
 	}
 }
 
@@ -53,14 +69,16 @@ func main() {
 	rl.InitWindow(800, 800, "bullet")
 	rl.SetTargetFPS(60)
 
+	obstacles = append(obstacles, rl.NewRectangle(400-32, 400-32, 40*2, 32*2))
+
 	for !rl.WindowShouldClose() {
+		player_update()
+
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.Black)
 
-		player_update()
-
 		rl.DrawRectangleRec(rl.NewRectangle(x-18, y-18, 18*2, 18*2), rl.Red)
-		rl.DrawRectangleRec(obstacle_rec, rl.Blue)
+		draw_obstacles()
 
 		rl.EndDrawing()
 	}
