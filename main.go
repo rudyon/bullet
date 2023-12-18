@@ -3,16 +3,22 @@ package main
 import rl "github.com/gen2brain/raylib-go/raylib"
 
 var (
-	x     float32 = 300
-	y     float32 = 400
-	speed float32 = 2
-
-	obstacles []rl.Rectangle
+	player Player = Player{300, 400, 2}
+	solids []Solid
 )
 
+type Player struct {
+	x, y  float32
+	speed float32
+}
+
+type Solid struct {
+	collider rl.Rectangle
+}
+
 func player_colliding() bool {
-	for i := 0; i < len(obstacles); i++ {
-		if rl.CheckCollisionRecs(rl.NewRectangle(x-18, y-18, 18*2, 18*2), obstacles[i]) {
+	for i := 0; i < len(solids); i++ {
+		if rl.CheckCollisionRecs(rl.NewRectangle(player.x-18, player.y-18, 18*2, 18*2), solids[i].collider) {
 			return true
 		}
 	}
@@ -27,60 +33,70 @@ func player_update() {
 	// i just wanna make it more workable later
 
 	if rl.IsKeyDown(rl.KeyD) {
-		x += speed
+		player.x += player.speed
 
 		for player_colliding() {
-			x--
+			player.x--
 		}
 	}
 
 	if rl.IsKeyDown(rl.KeyA) {
-		x -= speed
+		player.x -= player.speed
 
 		for player_colliding() {
-			x++
+			player.x++
 		}
 	}
 
 	if rl.IsKeyDown(rl.KeyW) {
-		y -= speed
+		player.y -= player.speed
 
 		for player_colliding() {
-			y++
+			player.y++
 		}
 	}
 
 	if rl.IsKeyDown(rl.KeyS) {
-		y += speed
+		player.y += player.speed
 
 		for player_colliding() {
-			y--
+			player.y--
 		}
 	}
 }
 
 func draw_obstacles() {
-	for i := 0; i < len(obstacles); i++ {
-		rl.DrawRectangleRec(obstacles[i], rl.Blue)
+	for i := 0; i < len(solids); i++ {
+		rl.DrawRectangleRec(solids[i].collider, rl.Blue)
 	}
 }
 
-func main() {
+func update() {
+	player_update()
+}
+
+func draw() {
+	rl.BeginDrawing()
+	rl.ClearBackground(rl.Black)
+
+	rl.DrawRectangleRec(rl.NewRectangle(player.x-18, player.y-18, 18*2, 18*2), rl.Red)
+	draw_obstacles()
+
+	rl.EndDrawing()
+}
+
+func init() {
 	rl.InitWindow(800, 800, "bullet")
 	rl.SetTargetFPS(60)
 
-	obstacles = append(obstacles, rl.NewRectangle(400-32, 400-32, 40*2, 32*2))
+	solids = append(solids, Solid{rl.NewRectangle(400-32, 400-32, 40*2, 32*2)})
+}
+
+func main() {
 
 	for !rl.WindowShouldClose() {
-		player_update()
-
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.Black)
-
-		rl.DrawRectangleRec(rl.NewRectangle(x-18, y-18, 18*2, 18*2), rl.Red)
-		draw_obstacles()
-
-		rl.EndDrawing()
+		update()
+		draw()
 	}
 
 	rl.CloseWindow()
