@@ -20,9 +20,9 @@ type Solid struct {
 }
 
 type Bullet struct {
-	x, y  float32
-	speed float32
-	angle float32
+	x, y     float32
+	speed    float32
+	velocity rl.Vector2
 }
 
 func colliding_player_solid() bool {
@@ -74,7 +74,7 @@ func update_player() {
 	}
 
 	if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
-		bullets = append(bullets, Bullet{player.x, player.y, 4, 4})
+		bullets = append(bullets, Bullet{player.x, player.y, 4, rl.Vector2Subtract(rl.NewVector2(player.x, player.y), rl.GetMousePosition())})
 	}
 }
 
@@ -97,8 +97,8 @@ func update() {
 
 func update_bullet() {
 	for i := 0; i < len(bullets); i++ {
-		bullets[i].x += bullets[i].speed
-		bullets[i].y += bullets[i].speed
+		bullets[i].x -= bullets[i].speed * rl.Vector2Normalize(bullets[i].velocity).X
+		bullets[i].y -= bullets[i].speed * rl.Vector2Normalize(bullets[i].velocity).Y
 	}
 }
 
