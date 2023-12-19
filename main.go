@@ -11,15 +11,15 @@ const (
 
 var (
 	running bool   = true
-	player  Player = Player{300, 400, 2, rl.NewVector2(0, 0)}
+	player  Player = Player{rl.NewVector2(300, 400), rl.NewVector2(0, 0), 2}
 	solids  []Solid
 	bullets []Bullet
 )
 
 type Player struct {
-	x, y     float32
-	speed    float32
+	position rl.Vector2
 	velocity rl.Vector2
+	speed    float32
 }
 
 type Solid struct {
@@ -27,14 +27,14 @@ type Solid struct {
 }
 
 type Bullet struct {
-	x, y     float32
-	speed    float32
+	position rl.Vector2
 	velocity rl.Vector2
+	speed    float32
 }
 
 func colliding_player_solid() bool {
 	for i := 0; i < len(solids); i++ {
-		if rl.CheckCollisionRecs(rl.NewRectangle(player.x-18, player.y-18, 18*2, 18*2), solids[i].collider) {
+		if rl.CheckCollisionRecs(rl.NewRectangle(player.position.X-18, player.position.Y-18, 18*2, 18*2), solids[i].collider) {
 			return true
 		}
 	}
@@ -61,17 +61,17 @@ func input() {
 	}
 
 	if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
-		bullets = append(bullets, Bullet{player.x, player.y, 4, rl.Vector2Subtract(rl.NewVector2(player.x, player.y), rl.GetMousePosition())})
+		bullets = append(bullets, Bullet{player.position, rl.Vector2Subtract(rl.GetMousePosition(), player.position), 4})
 	}
 }
 
 func update_player() {
-	player.x += rl.Vector2Normalize(player.velocity).X * player.speed
-	player.y += rl.Vector2Normalize(player.velocity).Y * player.speed
+	player.velocity = rl.Vector2Normalize(player.velocity)
+
+	player.position = rl.Vector2Add(player.position, rl.Vector2Scale(player.velocity, player.speed))
 
 	for colliding_player_solid() {
-		player.x -= rl.Vector2Normalize(player.velocity).X
-		player.y -= rl.Vector2Normalize(player.velocity).Y
+		player.position = rl.Vector2Subtract(player.position, player.velocity)
 	}
 
 	player.velocity = rl.NewVector2(0, 0)
@@ -85,7 +85,7 @@ func draw_obstacles() {
 
 func draw_bullets() {
 	for i := 0; i < len(bullets); i++ {
-		rl.DrawCircle(int32(bullets[i].x), int32(bullets[i].y), 16, rl.Green)
+		rl.DrawCircleV(bullets[i].position, 16, rl.Green)
 	}
 }
 
@@ -96,9 +96,10 @@ func update() {
 }
 
 func update_bullet() {
+
 	for i := 0; i < len(bullets); i++ {
-		bullets[i].x -= bullets[i].speed * rl.Vector2Normalize(bullets[i].velocity).X
-		bullets[i].y -= bullets[i].speed * rl.Vector2Normalize(bullets[i].velocity).Y
+		bullets[i].velocity = rl.Vector2Normalize(bullets[i].velocity)
+		bullets[i].position = rl.Vector2Add(bullets[i].position, rl.Vector2Scale(bullets[i].velocity, bullets[i].speed))
 	}
 }
 
@@ -106,7 +107,7 @@ func draw() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.Black)
 
-	rl.DrawRectangleRec(rl.NewRectangle(player.x-18, player.y-18, 18*2, 18*2), rl.Red)
+	rl.DrawRectangleRec(rl.NewRectangle(player.position.X-18, player.position.Y-18, 18*2, 18*2), rl.Red)
 	draw_obstacles()
 	draw_bullets()
 
