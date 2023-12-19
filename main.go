@@ -11,14 +11,15 @@ const (
 
 var (
 	running bool   = true
-	player  Player = Player{300, 400, 2}
+	player  Player = Player{300, 400, 2, rl.NewVector2(0, 0)}
 	solids  []Solid
 	bullets []Bullet
 )
 
 type Player struct {
-	x, y  float32
-	speed float32
+	x, y     float32
+	speed    float32
+	velocity rl.Vector2
 }
 
 type Solid struct {
@@ -41,47 +42,39 @@ func colliding_player_solid() bool {
 	return false
 }
 
-func update_player() {
-	// TODO: the code inside of here causes it so that moving diagonal is double the speed
-	// i don't want this. i don't think. maybe i can leave it still.
-	// for later consideration the collision took too long
-	// i just wanna make it more workable later
-
+func input() {
 	if rl.IsKeyDown(rl.KeyD) {
-		player.x += player.speed
-
-		for colliding_player_solid() {
-			player.x--
-		}
+		player.velocity.X = +1
 	}
 
 	if rl.IsKeyDown(rl.KeyA) {
-		player.x -= player.speed
-
-		for colliding_player_solid() {
-			player.x++
-		}
+		player.velocity.X = -1
 	}
 
 	if rl.IsKeyDown(rl.KeyW) {
-		player.y -= player.speed
-
-		for colliding_player_solid() {
-			player.y++
-		}
+		player.velocity.Y = -1
 	}
 
 	if rl.IsKeyDown(rl.KeyS) {
-		player.y += player.speed
+		player.velocity.Y = +1
 
-		for colliding_player_solid() {
-			player.y--
-		}
 	}
 
 	if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
 		bullets = append(bullets, Bullet{player.x, player.y, 4, rl.Vector2Subtract(rl.NewVector2(player.x, player.y), rl.GetMousePosition())})
 	}
+}
+
+func update_player() {
+	player.x += rl.Vector2Normalize(player.velocity).X * player.speed
+	player.y += rl.Vector2Normalize(player.velocity).Y * player.speed
+
+	for colliding_player_solid() {
+		player.x -= rl.Vector2Normalize(player.velocity).X
+		player.y -= rl.Vector2Normalize(player.velocity).Y
+	}
+
+	player.velocity = rl.NewVector2(0, 0)
 }
 
 func draw_obstacles() {
@@ -133,6 +126,7 @@ func quit() {
 func main() {
 
 	for running {
+		input()
 		update()
 		draw()
 	}
