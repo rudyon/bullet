@@ -11,12 +11,12 @@ const (
 
 var (
 	running bool   = true
-	player  Player = Player{rl.NewVector2(300, 400), rl.NewVector2(0, 0), 2}
+	player  Entity = Entity{rl.NewVector2(300, 400), rl.NewVector2(0, 0), 2}
 	solids  []Solid
-	bullets []Bullet
+	bullets []Entity
 )
 
-type Player struct {
+type Entity struct {
 	position rl.Vector2
 	velocity rl.Vector2
 	speed    float32
@@ -24,12 +24,6 @@ type Player struct {
 
 type Solid struct {
 	collider rl.Rectangle
-}
-
-type Bullet struct {
-	position rl.Vector2
-	velocity rl.Vector2
-	speed    float32
 }
 
 func colliding_player_solid() bool {
@@ -61,7 +55,7 @@ func input() {
 	}
 
 	if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
-		bullets = append(bullets, Bullet{player.position, rl.Vector2Subtract(rl.GetMousePosition(), player.position), 4})
+		bullets = append(bullets, Entity{player.position, rl.Vector2Subtract(rl.GetMousePosition(), player.position), 4})
 	}
 }
 
