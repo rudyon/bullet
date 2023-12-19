@@ -4,7 +4,13 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+const (
+	window_width, window_height = 800, 800
+	window_title                = "bullet"
+)
+
 var (
+	running bool   = true
 	player  Player = Player{300, 400, 2}
 	solids  []Solid
 	bullets []Bullet
@@ -91,6 +97,7 @@ func draw_bullets() {
 }
 
 func update() {
+	running = !rl.WindowShouldClose()
 	update_player()
 	update_bullet()
 }
@@ -114,18 +121,21 @@ func draw() {
 }
 
 func init() {
-	rl.InitWindow(800, 800, "bullet")
+	rl.InitWindow(window_width, window_height, window_title)
 	rl.SetTargetFPS(60)
 
 	solids = append(solids, Solid{rl.NewRectangle(400-32, 400-32, 40*2, 32*2)})
 }
 
+func quit() {
+	rl.CloseWindow()
+}
 func main() {
 
-	for !rl.WindowShouldClose() {
+	for running {
 		update()
 		draw()
 	}
 
-	rl.CloseWindow()
+	quit()
 }
